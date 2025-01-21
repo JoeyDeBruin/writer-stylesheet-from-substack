@@ -59,19 +59,22 @@ Here is the sample content:
         value=default_prompt,
         height=150
     )
-
-    #git remote add origin https://github.com/austin02202016/writing_style.git
+    
+    # Create two columns for the buttons
+    col1, col2 = st.columns(2)
+    with col1:
+        # Disable the button if publication_url is empty
+        generate_with_claude = st.button("Generate with Claude", key="generate_with_claude", disabled=not publication_url)
+    
+    with col2:
+        # Disable the button if publication_url is empty
+        generate_with_gpt = st.button("Generate with GPT", key="generate_with_gpt", disabled=not publication_url)
+    
+    # Variable to hold the generated stylesheet
+    stylesheet = None
     
     if publication_url:
-        # Create two columns for the buttons
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            generate_with_claude = st.button("Generate with Claude", key="generate_with_claude")
-        
-        with col2:
-            generate_with_gpt = st.button("Generate with GPT", key="generate_with_gpt")
-
+    
         if generate_with_gpt:  # Check if the GPT button was clicked
             ai_choice = "gpt"
             try:
@@ -84,46 +87,35 @@ Here is the sample content:
                 with st.spinner("Generating stylesheet..."):
                     stylesheet = generate_stylesheet(publication_data, ai_choice)
                 
-                # Display the generated stylesheet with markdown formatting
-                st.markdown(stylesheet)
-                
-                # Add download button
-                st.download_button(
-                    label="Download Stylesheet",
-                    data=stylesheet,
-                    file_name="publication_style.txt",  # Changed to .txt since it's not CSS anymore
-                    mime="text/plain"
-                )
-                
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
-
+    
         elif generate_with_claude:  # Check if the Claude button was clicked
             ai_choice = "claude"
             try:
-                # Fetch the RSS feed
-                rss_feed = get_rss_feed(publication_url)
-                # Parse the RSS feed to get publication data
-                publication_data = parse_rss_feed(rss_feed)  # Ensure this function is defined and imported
+                with st.spinner("Fetching RSS feed..."):
+                    rss_feed = get_rss_feed(publication_url)
+                
+                with st.spinner("Parsing content..."):
+                    publication_data = parse_rss_feed(rss_feed)
                 
                 with st.spinner("Generating stylesheet..."):
-                    # Pass the AI choice and publication data to the function
                     stylesheet = generate_stylesheet(publication_data, ai_choice)
-                
-                # Display the generated stylesheet with markdown formatting
-                st.markdown(stylesheet)
-                # Add download button
-                st.download_button(
-                    label="Download Stylesheet",
-                    data=stylesheet,
-                    file_name="publication_style.txt",  # Changed to .txt since it's not CSS anymore
-                    mime="text/plain"
-                )
                 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
-        # ... rest of the code for generating with Claude ...
-                
+    
+    # Display the generated stylesheet with markdown formatting
+    if stylesheet:
+        st.markdown(stylesheet)
+        
+        # Add download button
+        st.download_button(
+            label="Download Stylesheet",
+            data=stylesheet,
+            file_name="publication_style.txt",
+            mime="text/plain"
+        )
         
     
     
